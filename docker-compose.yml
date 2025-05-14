@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    image: laravelsail/php82-composer
+    container_name: desafio_laravel_app
+    volumes:
+      - .:/var/www/html
+    ports:
+      - "8000:8000"
+    working_dir: /var/www/html
+    command: bash -c "composer install && php artisan serve --host=0.0.0.0 --port=8000"
+
+  mailhog:
+    image: mailhog/mailhog
+    container_name: mailhog
+    ports:
+      - "8025:8025"
