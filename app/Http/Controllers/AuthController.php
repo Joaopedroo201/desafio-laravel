@@ -50,5 +50,16 @@ class AuthController extends Controller
         ]);
     }
 
+    public function forgot(ForgotPasswordRequest $request)
+    {
+        $user = \App\Models\User::where('email', $request->email)->first();
+
+        $token = Str::random(60);
+
+        // aqui você pode salvar o token numa tabela (opcional para o desafio)
+        event(new PasswordResetRequested($user, $token));
+
+        return response()->json(['message' => 'E-mail de recuperação enviado.']);
+    }
 }
 

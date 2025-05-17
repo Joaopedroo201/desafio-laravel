@@ -3,6 +3,9 @@
 namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\Event;
+use App\Events\PasswordResetRequested;
+use App\Listeners\SendPasswordResetEmail;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -11,7 +14,10 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        Event::listen(
+        PasswordResetRequested::class,
+        [SendPasswordResetEmail::class, 'handle']
+    );
     }
 
     /**
