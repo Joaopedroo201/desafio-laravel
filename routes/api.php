@@ -14,10 +14,10 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('/profile', [AuthController::class, 'me']);
     Route::post('/logout', [AuthController::class, 'logout']);
 
-    Route::middleware(['auth:sanctum', 'admin'])->prefix('admin')->group(function () {
+
+    Route::middleware('auth:sanctum')->group(function () {
         Route::get('/users', [AdminUserController::class, 'index']);
-        Route::get('/metrics', [AdminUserController::class, 'metrics']);
-        Route::put('/users/{id}', [AdminUserController::class, 'update']);
+        Route::get('/admin/metrics', [AdminUserController::class, 'metrics']);
         Route::delete('/users/{id}', [AdminUserController::class, 'destroy']);
     });
 
