@@ -1,61 +1,176 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# Desafio Laravel - API + Blade (Sanctum)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+## ✨ Descrição
 
-## About Laravel
+Este projeto é uma aplicação completa Laravel 12 com:
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+* Autenticação via **Laravel Sanctum** (token)
+* Frontend em **Blade** consumindo as **rotas da API**
+* Sistema de **cadastro e login de usuários**
+* Recuperação de senha com envio de e-mail via **Mailhog**
+* Integração com **API ViaCEP** para preenchimento automático de endereço
+* **Painel Admin** com métricas e gerenciamento de usuários
+* Filtros dinâmicos por cidade, estado e email
+* ✔ Arquitetura com **princípios SOLID** e separação clara entre lógica e camada de apresentação
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+---
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+## 🌐 Como rodar o projeto com Docker
 
-## Learning Laravel
+1. Clone o repositório e entre na pasta:
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+```bash
+git clone <repo> desafio-laravel
+cd desafio-laravel
+```
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+2. Suba o ambiente:
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+```bash
+docker-compose up -d
+```
 
-## Laravel Sponsors
+3. Acesse o container:
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+docker exec -it desafio_laravel_app bash
+```
 
-### Premium Partners
+4. Instale dependências e rode as migrations:
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+composer install
+php artisan migrate --seed
+```
 
-## Contributing
+5. Acesse o sistema:
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+* Frontend (Blade): [http://localhost:8000/login](http://localhost:8000/login)
+* Mailhog: [http://localhost:8025](http://localhost:8025)
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🏢 Rotas da API (REST)
 
-## Security Vulnerabilities
+### Autenticação
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+#### POST `/api/register`
 
-## License
+Cria um novo usuário. Exemplo:
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```json
+{
+  "name": "João",
+  "email": "joao@email.com",
+  "password": "123456",
+  "password_confirmation": "123456",
+  "cep": "01001000",
+  "number": "123"
+}
+```
+
+#### POST `/api/login`
+
+Autentica e retorna token:
+
+```json
+{
+  "email": "joao@email.com",
+  "password": "123456"
+}
+```
+
+#### POST `/api/logout`
+
+Revoga o token atual (protegido).
+
+#### GET `/api/me`
+
+Retorna dados do usuário autenticado.
+
+---
+
+### Recuperação de senha
+
+#### POST `/api/forgot-password`
+
+Envia e-mail com link de redefinição:
+
+```json
+{
+  "email": "joao@email.com"
+}
+```
+
+#### POST `/api/reset-password`
+
+Redefine senha:
+
+```json
+{
+  "token": "...",
+  "email": "joao@email.com",
+  "password": "nova",
+  "password_confirmation": "nova"
+}
+```
+
+---
+
+### Usuários e Admin
+
+#### GET `/api/users`
+
+Lista os usuários (admin apenas). Aceita filtros:
+
+* `city=São Paulo`
+* `state=SP`
+* `email=joao`
+
+#### DELETE `/api/users/{id}`
+
+Exclui um usuário (admin).
+
+#### GET `/api/admin/metrics`
+
+Retorna métricas de usuários por cidade e estado.
+
+---
+
+## 📘 Rotas Blade (frontend)
+
+* `/login` - tela de login
+* `/register` - cadastro
+* `/dashboard` - painel do usuário comum (listagem simples)
+* `/admin` - painel admin com métricas, filtros e exclusão
+* `/forgot-password` - recuperação de senha
+* `/reset-password/{token}` - redefinição
+
+---
+
+## ✅ Testes
+
+### Execução:
+
+```bash
+php artisan test
+```
+
+### Cobertura:
+
+* `AuthControllerTest`: login, registro, logout, falhas, token
+* `UserServiceTest`: criação com/sem CEP válido
+* `AdminRoutesTest`: acesso controlado por perfil
+
+---
+
+## 🤝 Considerações finais
+
+* Arquitetura limpa com Controllers finos e uso de **Services**
+* Views em Blade usam **fetch + token Sanctum** (API-first)
+* **Proteção de rotas admin** por middleware + checagem de perfil
+* Integração com **ViaCEP** para CEP
+* **Mailhog** simula envio de e-mails com sucesso
+* Sistema pr- Sistema pr\u00onto para ser escalado e testado
+
+---
