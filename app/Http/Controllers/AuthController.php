@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Events\PasswordResetRequested;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 
 class AuthController extends Controller
 {
@@ -54,14 +55,45 @@ class AuthController extends Controller
 
     public function forgot(ForgotPasswordRequest $request)
     {
-        $user = User::where('email', $request->email)->first();
-        $token = Str::random(60);
+        $user = User::where('email', $request->email)->firstOrFail();
 
-        event(new PasswordResetRequested($user, $token));
+        // Gera e salva o token corretamente na tabela password_resets
+        $token = Password::createToken($user);
+
+        // Monta link com token + email
+        $link = url('/reset-password') . '?token=' . $token . '&email=' . urlencode($user->email);
+
+        // Dispara evento (será tratado no listener para envio do e-mail)
+        event(new PasswordResetRequested($user, $token, $link));
 
         return response()->json(['message' => 'E-mail de recuperação enviado.']);
-    }
+    }    
+    public function resetPassword(Request $request)
+    {
+        $request->validate([
+            'email' => 'required|email',
+            'token' => 'required',
+            'password' => 'required|string|confirmed|min:6',
+        ]);
 
+        $status = Password::reset(
+            $request->only('email', 'password', 'password_confirmation', 'token'),
+            function ($user, $password) {
+                $user->forceFill([
+                    'password' => Hash::make($password),
+                ])->save();
+
+                // Revoga os tokens Sanctum anteriores
+                $user->tokens()->delete();
+            }
+        );
+
+        if ($status !== Password::PASSWORD_RESET) {
+            return response()->json(['message' => __($status)], 422);
+        }
+
+        return response()->json(['message' => 'Senha redefinida com sucesso.']);
+    }
     /**
      * Logout (revoga token Sanctum atual)
      */

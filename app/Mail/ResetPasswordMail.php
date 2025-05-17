@@ -22,12 +22,17 @@ class ResetPasswordMail extends Mailable
         public string $token
     ) {}
 
-    public function build()
+    public function build(): self
     {
-        return $this->subject('Recuperação de senha')
-            ->view('emails.reset-password');
-    }
-    
+        $link = url('/reset-password') . '?token=' . $this->token . '&email=' . urlencode($this->user->email);
+
+        return $this->subject('Redefinição de Senha')
+                    ->view('emails.reset-password')
+                    ->with([
+                        'user' => $this->user,
+                        'link' => $link,
+                    ]);
+    }    
     public function attachments(): array
     {
         return [];
