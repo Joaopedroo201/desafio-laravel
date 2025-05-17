@@ -6,12 +6,26 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class LoginRequest extends FormRequest
 {
-    /**
-     * Determine if the user is authorized to make this request.
-     */
+
+    public function rules(): array
+    {
+        return [
+            'email'    => 'required|email',
+            'password' => 'required',
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'email.required' => 'Informe o e-mail.',
+            'email.email'    => 'Formato de e-mail inválido.',
+            'password.required' => 'Informe a senha.',
+        ];
+    }    
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -19,10 +33,5 @@ class LoginRequest extends FormRequest
      *
      * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
      */
-    public function rules(): array
-    {
-        return [
-            //
-        ];
-    }
+
 }

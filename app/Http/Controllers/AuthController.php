@@ -6,6 +6,12 @@ use App\Http\Requests\Auth\RegisterRequest;
 use App\Http\Resources\UserResource;
 use App\Services\UserService;
 use Illuminate\Http\JsonResponse;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use App\Http\Requests\Auth\LoginRequest;
+use Illuminate\Support\Str;
+use App\Http\Requests\Auth\ForgotPasswordRequest;
+use App\Events\PasswordResetRequested;
 
 class AuthController extends Controller
 {
@@ -25,5 +31,24 @@ class AuthController extends Controller
             'token' => $token,
         ]);
     }
+
+    public function login(LoginRequest $request): JsonResponse
+    {
+        $credentials = $request->validated();
+
+        $user = User::where('email', $credentials['email'])->first();
+
+        if (!$user || !Hash::check($credentials['password'], $user->password)) {
+            return response()->json(['message' => 'Credenciais inválidas.'], 401);
+        }
+
+        $token = $user->createToken('auth_token')->plainTextToken;
+
+        return response()->json([
+            'user'  => new \App\Http\Resources\UserResource($user),
+            'token' => $token,
+        ]);
+    }
+
 }
 
