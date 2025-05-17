@@ -12,6 +12,7 @@ use App\Http\Requests\Auth\LoginRequest;
 use Illuminate\Support\Str;
 use App\Http\Requests\Auth\ForgotPasswordRequest;
 use App\Events\PasswordResetRequested;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -26,6 +27,7 @@ class AuthController extends Controller
         }
 
         $token = $user->createToken('auth_token')->plainTextToken;
+
         return response()->json([
             'user'  => new UserResource($user),
             'token' => $token,
@@ -45,21 +47,28 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token')->plainTextToken;
 
         return response()->json([
-            'user'  => new \App\Http\Resources\UserResource($user),
+            'user'  => new UserResource($user),
             'token' => $token,
         ]);
     }
 
     public function forgot(ForgotPasswordRequest $request)
     {
-        $user = \App\Models\User::where('email', $request->email)->first();
-
+        $user = User::where('email', $request->email)->first();
         $token = Str::random(60);
 
-        // aqui você pode salvar o token numa tabela (opcional para o desafio)
         event(new PasswordResetRequested($user, $token));
 
         return response()->json(['message' => 'E-mail de recuperação enviado.']);
     }
-}
 
+    /**
+     * Logout (revoga token Sanctum atual)
+     */
+    public function logout(Request $request)
+    {
+        $request->user()->currentAccessToken()->delete();
+
+        return response()->json(['message' => 'Logout realizado com sucesso.']);
+    }
+}

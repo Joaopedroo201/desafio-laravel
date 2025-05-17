@@ -13,8 +13,12 @@ class EnsureAdmin
      *
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      */
-    public function handle(Request $request, Closure $next): Response
+    public function handle(Request $request, Closure $next)
     {
+        if ($request->user()?->role !== 'admin') {
+            return response()->json(['message' => 'Acesso negado.'], 403);
+        }
+
         return $next($request);
     }
 }
